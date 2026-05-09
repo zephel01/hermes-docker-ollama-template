@@ -1,0 +1,91 @@
+name: Bug report / バグ報告
+description: 動作しない、エラーが出るなどの報告 / Report something that doesn't work
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        まず [TROUBLESHOOTING](../tree/main/docs/TROUBLESHOOTING.md) と [FAQ](../tree/main/docs/FAQ.md) を確認してください。
+        Please check [TROUBLESHOOTING](../tree/main/docs/TROUBLESHOOTING.en.md) and [FAQ](../tree/main/docs/FAQ.en.md) first.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要 / Summary
+      description: 何が起きているか / What is happening
+      placeholder: WebUI から送信したらエラーが返る
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順 / Steps to reproduce
+      placeholder: |
+        1. `./scripts/setup.sh`
+        2. `docker compose up -d --build`
+        3. http://127.0.0.1:8787 を開く
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した挙動 / Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の挙動 / Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / ディストリビューション
+      placeholder: Ubuntu 22.04
+    validations:
+      required: true
+
+  - type: input
+    id: docker_version
+    attributes:
+      label: Docker / Docker Compose のバージョン
+      placeholder: Docker 27.0.3, Compose v2.29.2
+    validations:
+      required: true
+
+  - type: input
+    id: ollama_version
+    attributes:
+      label: Ollama のバージョン
+      placeholder: 0.5.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: check_output
+    attributes:
+      label: scripts/check.sh の出力
+      description: 機密情報が含まれていないか確認した上で貼ってください
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: docker compose logs --tail=200 の出力
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: その他の情報 / Additional context

@@ -1,0 +1,63 @@
+services:
+  hermes-agent:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes-agent
+    command: gateway run
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8642:8642"
+    environment:
+      - HERMES_HOME=/home/hermes/.hermes
+      - HERMES_UID=${HOST_UID:-1000}
+      - HERMES_GID=${HOST_GID:-1000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${HOME}/.hermes:/home/hermes/.hermes
+      - hermes-agent-src:/opt/hermes
+    networks:
+      - hermes-net
+
+  hermes-webui:
+    build: ./hermes-webui
+    container_name: hermes-webui
+    restart: unless-stopped
+    depends_on:
+      - hermes-agent
+    env_file:
+      - ./.env
+    ports:
+      - "127.0.0.1:8787:8787"
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,mode=1777
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${HOME}/.hermes:/home/hermeswebui/.hermes
+      - hermes-agent-src:/home/hermeswebui/.hermes/hermes-agent
+      - ${HOME}/workspace:/workspace
+    networks:
+      - hermes-net
+
+  hermes-hudui:
+    build:
+      context: ./hermes-hudui
+      dockerfile: Dockerfile
+    container_name: hermes-hudui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HERMES_HOME=/root/.hermes
+    volumes:
+      - ${HOME}/.hermes:/root/.hermes
+    networks:
+      - hermes-net
+
+networks:
+  hermes-net:
+    driver: bridge
+
+volumes:
+  hermes-agent-src:

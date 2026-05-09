@@ -1,0 +1,61 @@
+# compose.ollama.yml
+# ---------------------------------------------------------------------------
+# Override file to run Ollama as a Docker container instead of on the host.
+#
+# Usage:
+#   ./scripts/setup.sh --ollama-docker
+#   docker compose -f docker-compose.yml -f compose.ollama.yml up -d --build
+#
+# When to use:
+#   - Linux + NVIDIA GPU (with NVIDIA Container Toolkit installed)
+#   - Linux CPU only and you want everything in Docker
+#
+# When NOT to use:
+#   - macOS (Docker Desktop cannot pass Apple Silicon GPU to containers; keep
+#     Ollama on the host so it can use Metal / Neural Engine).
+#   - Linux + AMD ROCm (use the ollama/ollama:rocm image variant instead).
+# ---------------------------------------------------------------------------
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      # Expose to the host so other tools (VSCode extensions, curl, etc.)
+      # can still reach Ollama at 127.0.0.1:11434.
+      - "127.0.0.1:11434:11434"
+    volumes:
+      # Reuse existing host model cache to avoid re-downloading.
+      - ${HOME}/.ollama:/root/.ollama
+    networks:
+      - hermes-net
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # -----------------------------------------------------------------------
+    # NVIDIA GPU support
+    # Uncomment the block below if you have:
+    #   - NVIDIA driver on the host
+    #   - NVIDIA Container Toolkit (nvidia-ctk) installed
+    # Verify with: docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+    # -----------------------------------------------------------------------
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  hermes-agent:
+    depends_on:
+      - ollama
+
+  hermes-webui:
+    depends_on:
+      - hermes-agent
+      - ollama

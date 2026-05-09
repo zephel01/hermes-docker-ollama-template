@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+
+.hermes/
+workspace/
+
+*.bak
+*.bak.*
+__pycache__/
+.pytest_cache/
+
+.DS_Store

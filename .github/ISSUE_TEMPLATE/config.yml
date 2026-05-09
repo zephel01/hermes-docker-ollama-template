@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: トラブルシュート / Troubleshooting
+    url: https://github.com/zephel01/hermes-docker-ollama-template/blob/main/docs/TROUBLESHOOTING.md
+    about: よくある問題はまずこちら / Common issues are documented here
+  - name: FAQ
+    url: https://github.com/zephel01/hermes-docker-ollama-template/blob/main/docs/FAQ.md
+    about: 質問の前にFAQを確認してください / Please check the FAQ first
+  - name: Discussions
+    url: https://github.com/zephel01/hermes-docker-ollama-template/discussions
+    about: 質問・アイデア交換はこちら / Ask questions and share ideas
