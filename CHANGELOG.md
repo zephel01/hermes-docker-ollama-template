@@ -14,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `compose.ollama.yml` override for "Ollama in Docker" mode (Linux + GPU recommended)
 - `config/config.yaml.ollama-docker.example` with `base_url: http://ollama:11434/v1`
 - `--ollama-docker` flag for `setup.sh`
-- `compose.search.yml` override that adds SearXNG + Crawl4AI for Web search
+- `compose.search.yml` override that adds SearXNG for Web search
 - `searxng/settings.yml.example` with `formats: [html, json]` and rate limiter disabled for agent use
-- `config/mcp.yaml.example` with MCP entries for `searxng` and `crawl4ai`
+- `config/mcp.yaml.example` with the `searxng` MCP entry
 - `--with-search` flag for `setup.sh` (auto-generates a 64-char `SEARXNG_SECRET_KEY`)
 - `docs/SEARCH.md` and `docs/SEARCH.en.md`
 - `host.docker.internal:11434` connectivity by default

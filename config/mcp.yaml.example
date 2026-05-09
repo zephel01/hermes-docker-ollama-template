@@ -5,18 +5,16 @@
 # container, not on your host. Do NOT paste host paths like /home/USER/...
 #
 # This example wires up:
-#   - SearXNG     : meta-search via http://searxng:8080
-#   - Crawl4AI    : page extraction via http://crawl4ai:11235
+#   - SearXNG : meta-search via http://searxng:8080
 #
-# Both rely on `compose.search.yml` being active so that the `searxng` and
-# `crawl4ai` hostnames resolve inside the docker network.
+# Relies on `compose.search.yml` being active so the `searxng` hostname
+# resolves inside the docker network.
 #
-# References (third-party MCP servers):
+# Reference (third-party MCP server):
 #   - https://github.com/ihor-sokoliuk/mcp-searxng        (npm: mcp-searxng)
-#   - https://github.com/coleam00/mcp-crawl4ai-rag        (uvx: mcp-crawl4ai)
 #
-# These are community projects and their interfaces may change. Treat the
-# config below as a starting point; verify with their current README.
+# This is a community project and its interface may change. Treat the
+# config below as a starting point; verify with the current README.
 
 mcp:
   servers:
@@ -31,13 +29,3 @@ mcp:
         - "mcp-searxng"
       env:
         SEARXNG_URL: "http://searxng:8080"
-
-    # ----------------------------------------------------------------------
-    # Crawl4AI — fetches a page and returns clean markdown.
-    # ----------------------------------------------------------------------
-    crawl4ai:
-      command: "uvx"
-      args:
-        - "mcp-crawl4ai"
-      env:
-        CRAWL4AI_URL: "http://crawl4ai:11235"

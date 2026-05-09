@@ -19,7 +19,6 @@ flowchart LR
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
         SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
-        Crawl4AI[Crawl4AI<br/>Port 11235<br/>--with-search]
     end
 
     subgraph Host[Host OS]
@@ -35,7 +34,6 @@ flowchart LR
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. MCP .-> SearXNG
-    Agent -. MCP .-> Crawl4AI
 
     WebUI --- HermesVol
     Agent --- HermesVol
@@ -43,7 +41,7 @@ flowchart LR
     WebUI --- Workspace
 ```
 
-> SearXNG / Crawl4AI are optional, started only when `compose.search.yml` is included. See [SEARCH.en.md](SEARCH.en.md).
+> SearXNG is optional, started only when `compose.search.yml` is included. See [SEARCH.en.md](SEARCH.en.md).
 
 ---
 
@@ -84,12 +82,7 @@ flowchart LR
 - `formats: [html, json]` is enabled in `searxng/settings.yml` so the agent can hit `/search?format=json`.
 - `SEARXNG_SECRET_KEY` is auto-written into `.env` (64 random hex chars) by `setup.sh --with-search`.
 
-### Crawl4AI (optional, `--with-search`)
-
-- Playwright (Chromium) based LLM-friendly page fetcher.
-- Handles dynamic / JS-rendered pages; returns clean Markdown that's easy for LLMs to consume.
-- Reachable from other containers at `http://crawl4ai:11235`.
-- First boot downloads Chromium binaries (~1 GB), so initial start can take 1–3 minutes.
+> Page extraction (extract / crawl) is not handled by SearXNG. If you need it, pair Hermes with an extract provider (Firecrawl / Tavily / Exa) via `web.extract_backend`.
 
 ---
 

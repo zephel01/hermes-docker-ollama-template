@@ -2,8 +2,7 @@
 # ---------------------------------------------------------------------------
 # Override file that adds Web search capability to Hermes:
 #
-#   - SearXNG  : self-hosted metasearch engine (Google/Bing/DuckDuckGo aggregation)
-#   - Crawl4AI : LLM-friendly web page crawler/extractor (Playwright-based)
+#   - SearXNG : self-hosted metasearch engine (Google/Bing/DuckDuckGo aggregation)
 #
 # Usage:
 #   ./scripts/setup.sh --with-search
@@ -13,8 +12,7 @@
 #   docker compose -f docker-compose.yml -f compose.ollama.yml -f compose.search.yml up -d --build
 #
 # Resource note:
-#   Crawl4AI ships with Chromium and Playwright. First start downloads
-#   ~1 GB of browser binaries. Steady-state RAM ~500 MB.
+#   SearXNG is lightweight (~200 MB RAM steady-state). No Chromium download.
 # ---------------------------------------------------------------------------
 
 services:
@@ -40,29 +38,11 @@ services:
       retries: 5
       start_period: 30s
 
-  crawl4ai:
-    image: unclecode/crawl4ai:latest
-    container_name: crawl4ai
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:11235:11235"
-    shm_size: 1gb            # Playwright/Chromium needs shared memory
-    networks:
-      - hermes-net
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:11235/health >/dev/null 2>&1 || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 60s      # First boot pulls Chromium
-
   hermes-agent:
     depends_on:
       - searxng
-      - crawl4ai
 
   hermes-webui:
     depends_on:
       - hermes-agent
       - searxng
-      - crawl4ai

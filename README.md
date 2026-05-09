@@ -38,7 +38,7 @@ Hermes WebUI を Docker と Ollama で動かすときに必ずハマる落とし
 | MCP 設定に絶対パスが残ってDocker内で壊れる | デフォルトはMCP無効 |
 | LAN/インターネットへの誤公開 | `127.0.0.1` バインド + Tailscale前提 |
 | `UID` / `GID` がbash予約名と衝突 / macOSで501:20が埋まらない | `HOST_UID`/`HOST_GID` に rename + `setup.sh` で自動置換 |
-| Hermes 単体では Web 検索ができない | `compose.search.yml` で SearXNG + Crawl4AI をオプション提供 |
+| Hermes 単体では Web 検索ができない | `compose.search.yml` で SearXNG をオプション提供 |
 
 ---
 
@@ -55,7 +55,6 @@ flowchart TB
         Agent[hermes-agent:8642]
         HUD[hermes-hudui:3001]
         SearXNG[SearXNG:8080<br/>--with-search]
-        Crawl4AI[Crawl4AI:11235<br/>--with-search]
     end
     subgraph Host[ホストOS]
         Ollama[Ollama:11434]
@@ -68,13 +67,12 @@ flowchart TB
     WebUI --> Agent
     Agent -->|host.docker.internal:11434/v1| Ollama
     Agent -. MCP .-> SearXNG
-    Agent -. MCP .-> Crawl4AI
     HUD --> Hermes
     WebUI --> Hermes
     Agent --> Hermes
 ```
 
-> SearXNG / Crawl4AI は `--with-search` 指定時のみ起動するオプションコンポーネントです。
+> SearXNG は `--with-search` 指定時のみ起動するオプションコンポーネントです。
 
 ---
 
@@ -141,7 +139,7 @@ docker exec -it ollama ollama pull gemma4:e4b
 
 NVIDIA GPU を使う場合は `compose.ollama.yml` の `deploy.resources` ブロックをアンコメントしてください。
 
-**モード 3: Web検索を有効化（SearXNG + Crawl4AI）**
+**モード 3: Web検索を有効化（SearXNG）**
 
 ```bash
 ./scripts/setup.sh --with-search
@@ -310,13 +308,13 @@ hermes-docker-ollama-template/
 ├── CHANGELOG.md
 ├── docker-compose.yml
 ├── compose.ollama.yml         ← Ollama も Docker化する場合の override
-├── compose.search.yml         ← SearXNG + Crawl4AI を足す override
+├── compose.search.yml         ← SearXNG を足す override
 ├── .env.example
 ├── .gitignore
 ├── config/
 │   ├── config.yaml.example
 │   ├── config.yaml.ollama-docker.example
-│   └── mcp.yaml.example       ← SearXNG/Crawl4AI 用 MCP 設定例
+│   └── mcp.yaml.example       ← SearXNG 用 MCP 設定例
 ├── searxng/
 │   └── settings.yml.example
 ├── hermes-hudui/
@@ -371,7 +369,7 @@ hermes-docker-ollama-template/
     <td><a href="docs/SECURITY.en.md">SECURITY.en.md</a></td>
   </tr>
   <tr>
-    <td>Web 検索（SearXNG + Crawl4AI）</td>
+    <td>Web 検索（SearXNG）</td>
     <td><a href="docs/SEARCH.md">SEARCH.md</a></td>
     <td><a href="docs/SEARCH.en.md">SEARCH.en.md</a></td>
   </tr>

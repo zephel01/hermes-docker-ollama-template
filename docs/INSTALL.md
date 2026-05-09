@@ -212,7 +212,7 @@ NVIDIA GPU を使う場合は `compose.ollama.yml` 内の `deploy.resources.rese
 > [!WARNING]
 > macOS で `--ollama-docker` を使うと CPU 推論になります（Docker Desktop が Apple Silicon GPU をパススルーできないため）。Mac ではホスト Ollama 構成を強く推奨します。
 
-### Web 検索を有効にしたい場合（SearXNG + Crawl4AI）
+### Web 検索を有効にしたい場合（SearXNG）
 
 ```bash
 ./scripts/setup.sh --with-search
@@ -223,7 +223,7 @@ docker compose -f docker-compose.yml -f compose.search.yml up -d --build
 
 - `searxng/settings.yml` を生成（`formats: [html, json]` 有効）
 - `.env` に 64文字の `SEARXNG_SECRET_KEY` を追記
-- `~/.hermes/mcp.yaml` に SearXNG / Crawl4AI 用 MCP エントリをコピー
+- `~/.hermes/mcp.yaml` に SearXNG 用 MCP エントリをコピー
 
 `--ollama-docker` と組み合わせ可能です:
 

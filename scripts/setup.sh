@@ -20,7 +20,7 @@ Options:
                     Recommended only on Linux. Not recommended on macOS
                     (Docker Desktop cannot pass Apple Silicon GPU through).
 
-  --with-search     Enable Web search stack (SearXNG + Crawl4AI).
+  --with-search     Enable Web search stack (SearXNG only).
                     Generates searxng/settings.yml from settings.yml.example,
                     fills SEARXNG_SECRET_KEY with a random value, and copies
                     config/mcp.yaml.example to ~/.hermes/mcp.yaml.
@@ -225,10 +225,10 @@ if [ ! -d "$REPO_DIR/hermes-hudui/.git" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 8. Optional: SearXNG + Crawl4AI (web search) setup
+# 8. Optional: SearXNG (web search) setup
 # ---------------------------------------------------------------------------
 if [ "$WITH_SEARCH" = "1" ]; then
-  echo "[+] Configuring SearXNG + Crawl4AI..."
+  echo "[+] Configuring SearXNG..."
 
   mkdir -p "$REPO_DIR/searxng"
   if [ ! -f "$REPO_DIR/searxng/settings.yml" ]; then
@@ -276,9 +276,8 @@ if [ "$OLLAMA_DOCKER" = "1" ]; then
 fi
 
 if [ "$WITH_SEARCH" = "1" ]; then
-  echo "Verify SearXNG / Crawl4AI:"
+  echo "Verify SearXNG:"
   echo "  curl 'http://127.0.0.1:8080/search?q=hermes&format=json' | head"
-  echo "  curl http://127.0.0.1:11235/health"
   echo
 fi
 
@@ -286,4 +285,3 @@ echo "Access:"
 echo "  Hermes WebUI : http://127.0.0.1:8787"
 echo "  Hermes HUDUI : http://127.0.0.1:3001"
 [ "$WITH_SEARCH" = "1" ] && echo "  SearXNG      : http://127.0.0.1:8080"
-[ "$WITH_SEARCH" = "1" ] && echo "  Crawl4AI     : http://127.0.0.1:11235"

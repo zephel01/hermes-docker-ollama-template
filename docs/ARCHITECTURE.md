@@ -19,7 +19,6 @@ flowchart LR
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
         SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
-        Crawl4AI[Crawl4AI<br/>Port 11235<br/>--with-search]
     end
 
     subgraph Host[ホストOS]
@@ -35,7 +34,6 @@ flowchart LR
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. MCP .-> SearXNG
-    Agent -. MCP .-> Crawl4AI
 
     WebUI --- HermesVol
     Agent --- HermesVol
@@ -43,7 +41,7 @@ flowchart LR
     WebUI --- Workspace
 ```
 
-> SearXNG / Crawl4AI は `compose.search.yml` 有効時にのみ起動するオプションコンポーネントです。詳細は [SEARCH.md](SEARCH.md) を参照してください。
+> SearXNG は `compose.search.yml` 有効時にのみ起動するオプションコンポーネントです。詳細は [SEARCH.md](SEARCH.md) を参照してください。
 
 ---
 
@@ -84,12 +82,7 @@ flowchart LR
 - `searxng/settings.yml` で `formats: [html, json]` を有効化済み（エージェントが `/search?format=json` を叩けるように）。
 - `SEARXNG_SECRET_KEY` は `setup.sh --with-search` が `.env` に 64文字ランダムを書き込む。
 
-### Crawl4AI (オプション、`--with-search` で有効)
-
-- Playwright (Chromium) ベースの LLM フレンドリな Web ページ取得サーバ。
-- 動的レンダリング対応。整形済み Markdown を返すので LLM への投入が楽。
-- コンテナ間では `http://crawl4ai:11235` で到達。
-- 初回起動時に Chromium バイナリ（約 1GB）をダウンロードするため、起動完了まで 1〜3 分かかることがある。
+> ページ本文の取得（extract / crawl）は SearXNG では行えません。必要であれば Hermes 側の `web.extract_backend` 設定で Firecrawl / Tavily / Exa などのプロバイダを併用してください。
 
 ---
 

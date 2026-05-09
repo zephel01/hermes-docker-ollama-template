@@ -38,7 +38,7 @@ Running Hermes Web UI with Docker and Ollama has several common pitfalls. This t
 | MCP host absolute paths break inside the container | MCP disabled by default |
 | Accidental LAN / public exposure | Bound to `127.0.0.1`, Tailscale-first design |
 | `UID` / `GID` clash with bash builtins / wrong defaults on macOS (501:20) | Renamed to `HOST_UID` / `HOST_GID`, auto-filled by `setup.sh` |
-| Hermes alone has no Web search capability | Optional SearXNG + Crawl4AI stack via `compose.search.yml` |
+| Hermes alone has no Web search capability | Optional SearXNG stack via `compose.search.yml` |
 
 ---
 
@@ -55,7 +55,6 @@ flowchart TB
         Agent[hermes-agent:8642]
         HUD[hermes-hudui:3001]
         SearXNG[SearXNG:8080<br/>--with-search]
-        Crawl4AI[Crawl4AI:11235<br/>--with-search]
     end
     subgraph Host[Host OS]
         Ollama[Ollama:11434]
@@ -68,13 +67,12 @@ flowchart TB
     WebUI --> Agent
     Agent -->|host.docker.internal:11434/v1| Ollama
     Agent -. MCP .-> SearXNG
-    Agent -. MCP .-> Crawl4AI
     HUD --> Hermes
     WebUI --> Hermes
     Agent --> Hermes
 ```
 
-> SearXNG and Crawl4AI are optional, enabled only when you pass `--with-search`.
+> SearXNG is optional, enabled only when you pass `--with-search`.
 
 ---
 
@@ -141,7 +139,7 @@ docker exec -it ollama ollama pull gemma4:e4b
 
 For NVIDIA GPU, uncomment the `deploy.resources` block in `compose.ollama.yml`.
 
-**Mode 3: Enable Web search (SearXNG + Crawl4AI)**
+**Mode 3: Enable Web search (SearXNG)**
 
 ```bash
 ./scripts/setup.sh --with-search
@@ -307,13 +305,13 @@ hermes-docker-ollama-template/
 ├── CHANGELOG.md
 ├── docker-compose.yml
 ├── compose.ollama.yml         (override: Ollama-in-Docker mode)
-├── compose.search.yml         (override: SearXNG + Crawl4AI Web search)
+├── compose.search.yml         (override: SearXNG Web search)
 ├── .env.example
 ├── .gitignore
 ├── config/
 │   ├── config.yaml.example
 │   ├── config.yaml.ollama-docker.example
-│   └── mcp.yaml.example       (MCP entries for SearXNG / Crawl4AI)
+│   └── mcp.yaml.example       (MCP entry for SearXNG)
 ├── searxng/
 │   └── settings.yml.example
 ├── hermes-hudui/
@@ -368,7 +366,7 @@ hermes-docker-ollama-template/
     <td><a href="docs/SECURITY.md">SECURITY.md</a></td>
   </tr>
   <tr>
-    <td>Web search (SearXNG + Crawl4AI)</td>
+    <td>Web search (SearXNG)</td>
     <td><a href="docs/SEARCH.en.md">SEARCH.en.md</a></td>
     <td><a href="docs/SEARCH.md">SEARCH.md</a></td>
   </tr>

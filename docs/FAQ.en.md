@@ -17,7 +17,7 @@
 - [Q. How do I update?](#q-how-do-i-update)
 - [Q. Where are the prompt logs?](#q-where-are-the-prompt-logs)
 - [Q. How do I give Hermes Web search?](#q-how-do-i-give-hermes-web-search)
-- [Q. Does SearXNG / Crawl4AI leak data outside?](#q-does-searxng--crawl4ai-leak-data-outside)
+- [Q. Does SearXNG leak data outside?](#q-does-searxng-leak-data-outside)
 
 ---
 
@@ -180,14 +180,14 @@ shows recently modified files.
 
 ## Q. How do I give Hermes Web search?
 
-**A.** Enable the SearXNG + Crawl4AI add-on:
+**A.** Enable the SearXNG add-on:
 
 ```bash
 ./scripts/setup.sh --with-search
 docker compose -f docker-compose.yml -f compose.search.yml up -d --build
 ```
 
-SearXNG handles meta-search (proxying Google / Bing / DuckDuckGo / etc.); Crawl4AI fetches individual pages. See [SEARCH.en.md](SEARCH.en.md).
+SearXNG handles meta-search (proxying Google / Bing / DuckDuckGo / etc.). If you also need page extraction, pair it with an extract provider (Firecrawl / Tavily / Exa) via Hermes' `web.extract_backend`. See [SEARCH.en.md](SEARCH.en.md).
 
 You can combine with Ollama-in-Docker mode:
 
@@ -201,10 +201,9 @@ docker compose \
 
 ---
 
-## Q. Does SearXNG / Crawl4AI leak data outside?
+## Q. Does SearXNG leak data outside?
 
 **A.** Some of it does — being upfront here:
 
 - **Search queries**: SearXNG is a meta-search proxy, so queries ultimately hit Google / Bing / etc. Your IP, cookies, and User-Agent are SearXNG's, not yours, so personal tracking is reduced — but not zero.
-- **Fetched page contents**: Crawl4AI processes pages inside the container; nothing is sent outward.
 - **Hardening**: Drop Google / Bing from `searxng/settings.yml` `engines:` and keep only DuckDuckGo / Brave / Wikipedia. Queries still go out, but the targets are friendlier to privacy.
