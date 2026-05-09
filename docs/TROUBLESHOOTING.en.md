@@ -12,7 +12,6 @@ Always start with [`./scripts/check.sh`](../scripts/check.sh) to isolate which l
 - [`/tmp/hermeswebui_root_env.txt: Permission denied`](#tmphermeswebui_root_envtxt-permission-denied)
 - [`HERMES_WEBUI_STATE_DIR not set`](#hermes_webui_state_dir-not-set)
 - [`mkdir: cannot create directory '/home/...': Permission denied`](#mkdir-cannot-create-directory-home-permission-denied)
-- [MCP server `missing executable uvx`](#mcp-server-missing-executable-uvx)
 - [`hermes-hudui` won't start](#hermes-hudui-wont-start)
 - [LLM responses are extremely slow](#llm-responses-are-extremely-slow)
 - [Cannot log into WebUI](#cannot-log-into-webui)
@@ -152,23 +151,6 @@ HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
 
 ---
 
-## MCP server `missing executable uvx`
-
-```text
-missing executable '/home/USER/works/hermes/.venv/bin/uvx'
-```
-
-A host absolute path is in `~/.hermes/mcp.yaml`.
-
-Recovery order:
-
-1. Disable MCP completely
-2. `docker compose restart`
-3. Confirm normal chat works
-4. Re-enable MCP one server at a time, using container-internal paths
-
----
-
 ## `hermes-hudui` won't start
 
 The upstream repo layout (e.g. `pyproject.toml` paths) may have shifted.
@@ -211,11 +193,11 @@ If that still fails, reset WebUI state:
 
 ## SearXNG issues
 
-Search-stack-specific issues live in [SEARCH.en.md](SEARCH.en.md). Common ones:
+SearXNG ships in the base compose and starts by default. Search-stack-specific issues live in [SEARCH.en.md](SEARCH.en.md). Common ones:
 
 - `searxng` container keeps restarting → `SEARXNG_SECRET_KEY` is not set
 - `format=json` returns 404 / 403 → `formats: [html, json]` missing from `searxng/settings.yml`
-- Hermes can't reach SearXNG → forgot to pass `compose.search.yml` on `up`
-- MCP server `command not found` → `mcp-searxng` (npm) runtime (Node.js) missing inside the container
+- Hermes can't reach SearXNG → `searxng` container isn't running (`docker compose ps` to check)
+- Hermes reports `Could not reach SearXNG at http://localhost:8888` → `~/.hermes/.env` is missing `SEARXNG_URL=http://searxng:8080` (`setup.sh` writes it for you)
 
 See [SEARCH.en.md](SEARCH.en.md) for the full diagnostic flow.

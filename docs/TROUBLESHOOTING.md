@@ -12,7 +12,6 @@
 - [`/tmp/hermeswebui_root_env.txt: Permission denied`](#tmphermeswebui_root_envtxt-permission-denied)
 - [`HERMES_WEBUI_STATE_DIR not set`](#hermes_webui_state_dir-not-set)
 - [`mkdir: cannot create directory '/home/...': Permission denied`](#mkdir-cannot-create-directory-home-permission-denied)
-- [MCP server で `missing executable uvx`](#mcp-server-で-missing-executable-uvx)
 - [`hermes-hudui` が起動しない](#hermes-hudui-が起動しない)
 - [LLM の応答が極端に遅い](#llm-の応答が極端に遅い)
 - [WebUI からログインできない](#webui-からログインできない)
@@ -152,23 +151,6 @@ HERMES_WEBUI_STATE_DIR=/home/hermeswebui/.hermes/webui
 
 ---
 
-## MCP server で `missing executable uvx`
-
-```text
-missing executable '/home/USER/works/hermes/.venv/bin/uvx'
-```
-
-これは `~/.hermes/mcp.yaml` などにホストの絶対パスが残っているためです。
-
-切り分けの順序:
-
-1. MCP 設定をいったん無効化する
-2. `docker compose restart` する
-3. 通常チャットで応答が返るのを確認する
-4. その上で必要な MCP だけ有効化する（`docker exec` 経由でコンテナ内パスを確認しながら）
-
----
-
 ## `hermes-hudui` が起動しない
 
 公式リポジトリの構成変更で `pyproject.toml` などのパスが変わっている可能性があります。
@@ -211,11 +193,11 @@ ollama pull qwen2.5:3b
 
 ## SearXNG 関連
 
-検索基盤を有効にしている場合（`compose.search.yml`）の典型的な詰まりは [SEARCH.md](SEARCH.md) のトラブルシュートに集約しています。よくあるもの:
+SearXNG はベース構成に含まれて標準起動します。典型的な詰まりは [SEARCH.md](SEARCH.md) のトラブルシュートに集約しています。よくあるもの:
 
 - `searxng` コンテナが再起動を繰り返す → `SEARXNG_SECRET_KEY` 未設定
 - `format=json` が 404 / 403 → `searxng/settings.yml` の `formats: [html, json]` 不足
-- Hermes から SearXNG に到達できない → `compose.search.yml` を起動コマンドに渡し忘れ
-- MCP サーバが `command not found` → `mcp-searxng` (npm) の実行系（Node.js）がコンテナ内に必要
+- Hermes から SearXNG に到達できない → `searxng` コンテナが起動していない（`docker compose ps` で確認）
+- Hermes が `Could not reach SearXNG at http://localhost:8888` と言う → `~/.hermes/.env` に `SEARXNG_URL=http://searxng:8080` が無い（`setup.sh` で自動追記される）
 
 詳しい確認手順は [SEARCH.md](SEARCH.md) を参照してください。

@@ -35,10 +35,9 @@ Hermes WebUI を Docker と Ollama で動かすときに必ずハマる落とし
 | WebUI に Gemini / GPT / DeepSeek の候補が混ざる | `model_catalog.enabled: false` で抑止 |
 | `hermes-webui` が `/tmp` 書き込みでコケる | `tmpfs` をマウント済み |
 | `hermes-hudui` 公式 Dockerfile が無い | カスタム Dockerfile 同梱 |
-| MCP 設定に絶対パスが残ってDocker内で壊れる | デフォルトはMCP無効 |
 | LAN/インターネットへの誤公開 | `127.0.0.1` バインド + Tailscale前提 |
 | `UID` / `GID` がbash予約名と衝突 / macOSで501:20が埋まらない | `HOST_UID`/`HOST_GID` に rename + `setup.sh` で自動置換 |
-| Hermes 単体では Web 検索ができない | `compose.search.yml` で SearXNG をオプション提供 |
+| Hermes 単体では Web 検索ができない | `docker-compose.yml` に SearXNG を同梱（標準で有効） |
 
 ---
 
@@ -54,7 +53,7 @@ flowchart TB
         WebUI[hermes-webui:8787]
         Agent[hermes-agent:8642]
         HUD[hermes-hudui:3001]
-        SearXNG[SearXNG:8080<br/>--with-search]
+        SearXNG[SearXNG:8080]
     end
     subgraph Host[ホストOS]
         Ollama[Ollama:11434]
@@ -66,13 +65,13 @@ flowchart TB
     TS --> WebUI
     WebUI --> Agent
     Agent -->|host.docker.internal:11434/v1| Ollama
-    Agent -. MCP .-> SearXNG
+    Agent -. web_search .-> SearXNG
     HUD --> Hermes
     WebUI --> Hermes
     Agent --> Hermes
 ```
 
-> SearXNG は `--with-search` 指定時のみ起動するオプションコンポーネントです。
+> SearXNG は標準で起動します。Hermes ネイティブの `web_search` ツールがこれを使ってメタ検索を行います。
 
 ---
 
@@ -107,11 +106,11 @@ flowchart TD
     F -->|No| E
     E --> H{Web 検索も使いたい？}
     G --> H
-    H -->|Yes| I[--with-search を追加]
+    H -->|Yes| I[既定で有効、追加操作不要]
     H -->|No| J[ベース構成で起動]
 ```
 
-`--ollama-docker` と `--with-search` はそれぞれ独立して on/off できます。組み合わせ自由です。
+SearXNG は標準で組み込まれているので、追加フラグは不要。`--ollama-docker` のみ環境に応じて選んでください。
 
 ## クイックスタート
 
@@ -139,14 +138,9 @@ docker exec -it ollama ollama pull gemma4:e4b
 
 NVIDIA GPU を使う場合は `compose.ollama.yml` の `deploy.resources` ブロックをアンコメントしてください。
 
-**モード 3: Web検索を有効化（SearXNG）**
+**Web 検索について**
 
-```bash
-./scripts/setup.sh --with-search
-docker compose -f docker-compose.yml -f compose.search.yml up -d --build
-```
-
-詳しくは [docs/SEARCH.md](docs/SEARCH.md) を参照。`--ollama-docker` と組み合わせも可能です。
+SearXNG はベース構成に組み込まれており、上の `setup.sh` / `docker compose up` で標準起動します。追加フラグは不要です。詳しくは [docs/SEARCH.md](docs/SEARCH.md) を参照。
 
 アクセス先:
 
@@ -308,13 +302,11 @@ hermes-docker-ollama-template/
 ├── CHANGELOG.md
 ├── docker-compose.yml
 ├── compose.ollama.yml         ← Ollama も Docker化する場合の override
-├── compose.search.yml         ← SearXNG を足す override
 ├── .env.example
 ├── .gitignore
 ├── config/
 │   ├── config.yaml.example
 │   ├── config.yaml.ollama-docker.example
-│   └── mcp.yaml.example       ← SearXNG 用 MCP 設定例
 ├── searxng/
 │   └── settings.yml.example
 ├── hermes-hudui/

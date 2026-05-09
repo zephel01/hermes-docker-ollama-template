@@ -35,10 +35,9 @@ Running Hermes Web UI with Docker and Ollama has several common pitfalls. This t
 | WebUI shows stale Gemini / GPT / DeepSeek model entries | `model_catalog.enabled: false` by default |
 | `hermes-webui` fails on `/tmp` writes | `tmpfs` mount included |
 | `hermes-hudui` has no official Dockerfile | Custom Dockerfile bundled |
-| MCP host absolute paths break inside the container | MCP disabled by default |
 | Accidental LAN / public exposure | Bound to `127.0.0.1`, Tailscale-first design |
 | `UID` / `GID` clash with bash builtins / wrong defaults on macOS (501:20) | Renamed to `HOST_UID` / `HOST_GID`, auto-filled by `setup.sh` |
-| Hermes alone has no Web search capability | Optional SearXNG stack via `compose.search.yml` |
+| Hermes alone has no Web search capability | SearXNG bundled in `docker-compose.yml` and on by default |
 
 ---
 
@@ -54,7 +53,7 @@ flowchart TB
         WebUI[hermes-webui:8787]
         Agent[hermes-agent:8642]
         HUD[hermes-hudui:3001]
-        SearXNG[SearXNG:8080<br/>--with-search]
+        SearXNG[SearXNG:8080]
     end
     subgraph Host[Host OS]
         Ollama[Ollama:11434]
@@ -66,13 +65,13 @@ flowchart TB
     TS --> WebUI
     WebUI --> Agent
     Agent -->|host.docker.internal:11434/v1| Ollama
-    Agent -. MCP .-> SearXNG
+    Agent -. web_search .-> SearXNG
     HUD --> Hermes
     WebUI --> Hermes
     Agent --> Hermes
 ```
 
-> SearXNG is optional, enabled only when you pass `--with-search`.
+> SearXNG is started by default. Hermes' built-in `web_search` tool routes through it for meta-search.
 
 ---
 
@@ -107,11 +106,11 @@ flowchart TD
     F -->|No| E
     E --> H{Want Web search?}
     G --> H
-    H -->|Yes| I[Add --with-search]
+    H -->|Yes| I[Already on by default]
     H -->|No| J[Run base setup]
 ```
 
-`--ollama-docker` and `--with-search` are independent toggles — combine freely.
+SearXNG is bundled in the base compose, so no extra flag is needed. Pick `--ollama-docker` based on your environment.
 
 ## Quick Start
 
@@ -139,14 +138,9 @@ docker exec -it ollama ollama pull gemma4:e4b
 
 For NVIDIA GPU, uncomment the `deploy.resources` block in `compose.ollama.yml`.
 
-**Mode 3: Enable Web search (SearXNG)**
+**About web search**
 
-```bash
-./scripts/setup.sh --with-search
-docker compose -f docker-compose.yml -f compose.search.yml up -d --build
-```
-
-See [docs/SEARCH.en.md](docs/SEARCH.en.md). Combinable with `--ollama-docker`.
+SearXNG is part of the base stack and starts automatically with the `setup.sh` / `docker compose up` commands above. No additional flag needed. See [docs/SEARCH.en.md](docs/SEARCH.en.md) for details.
 
 Endpoints:
 
@@ -305,13 +299,11 @@ hermes-docker-ollama-template/
 ├── CHANGELOG.md
 ├── docker-compose.yml
 ├── compose.ollama.yml         (override: Ollama-in-Docker mode)
-├── compose.search.yml         (override: SearXNG Web search)
 ├── .env.example
 ├── .gitignore
 ├── config/
 │   ├── config.yaml.example
 │   ├── config.yaml.ollama-docker.example
-│   └── mcp.yaml.example       (MCP entry for SearXNG)
 ├── searxng/
 │   └── settings.yml.example
 ├── hermes-hudui/

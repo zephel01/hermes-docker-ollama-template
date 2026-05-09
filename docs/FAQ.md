@@ -183,24 +183,14 @@ find ~/.hermes -type f -mtime -1
 
 ## Q. Hermes に Web 検索をさせるには？
 
-**A.** SearXNG のオプション構成を有効にします。
+**A.** SearXNG はベース構成に組み込まれているので、標準セットアップで自動的に使えます。
 
 ```bash
-./scripts/setup.sh --with-search
-docker compose -f docker-compose.yml -f compose.search.yml up -d --build
+./scripts/setup.sh
+docker compose up -d --build
 ```
 
 SearXNG がメタ検索（Google / Bing / DuckDuckGo 等を集約）を担当します。ページ本文の取得が必要な場合は、Hermes 側の `web.extract_backend` で Firecrawl / Tavily / Exa などを併用してください。詳細は [SEARCH.md](SEARCH.md) を参照。
-
-`--ollama-docker` と組み合わせも可能です:
-
-```bash
-docker compose \
-  -f docker-compose.yml \
-  -f compose.ollama.yml \
-  -f compose.search.yml \
-  up -d --build
-```
 
 ---
 

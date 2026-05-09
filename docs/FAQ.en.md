@@ -180,24 +180,14 @@ shows recently modified files.
 
 ## Q. How do I give Hermes Web search?
 
-**A.** Enable the SearXNG add-on:
+**A.** SearXNG is bundled into the base stack, so the default setup wires it up automatically.
 
 ```bash
-./scripts/setup.sh --with-search
-docker compose -f docker-compose.yml -f compose.search.yml up -d --build
+./scripts/setup.sh
+docker compose up -d --build
 ```
 
 SearXNG handles meta-search (proxying Google / Bing / DuckDuckGo / etc.). If you also need page extraction, pair it with an extract provider (Firecrawl / Tavily / Exa) via Hermes' `web.extract_backend`. See [SEARCH.en.md](SEARCH.en.md).
-
-You can combine with Ollama-in-Docker mode:
-
-```bash
-docker compose \
-  -f docker-compose.yml \
-  -f compose.ollama.yml \
-  -f compose.search.yml \
-  up -d --build
-```
 
 ---
 

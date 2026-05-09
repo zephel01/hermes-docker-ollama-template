@@ -10,6 +10,9 @@ services:
       - HERMES_HOME=/home/hermes/.hermes
       - HERMES_UID=${HOST_UID:-1000}
       - HERMES_GID=${HOST_GID:-1000}
+      # NOTE: SEARXNG_URL is read by Hermes from ~/.hermes/.env (not from this
+      # process env). The line below is documentation/fallback only.
+      - SEARXNG_URL=http://searxng:8080
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -17,6 +20,8 @@ services:
       - hermes-agent-src:/opt/hermes
     networks:
       - hermes-net
+    depends_on:
+      - searxng
 
   hermes-webui:
     build: ./hermes-webui
@@ -54,6 +59,37 @@ services:
       - ${HOME}/.hermes:/root/.hermes
     networks:
       - hermes-net
+
+  # ---------------------------------------------------------------------------
+  # SearXNG — meta-search backend that powers Hermes' built-in `web_search`
+  # tool. Runs locally; no external API key required.
+  #
+  # Wired to Hermes via:
+  #   - ~/.hermes/config.yaml   web.search_backend: "searxng"
+  #   - ~/.hermes/.env          SEARXNG_URL=http://searxng:8080
+  # `scripts/setup.sh` sets both for you.
+  # ---------------------------------------------------------------------------
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+      - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:?set SEARXNG_SECRET_KEY in .env (run scripts/setup.sh)}
+      - UWSGI_WORKERS=2
+      - UWSGI_THREADS=4
+    networks:
+      - hermes-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   hermes-net:

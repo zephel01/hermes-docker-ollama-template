@@ -14,10 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `compose.ollama.yml` override for "Ollama in Docker" mode (Linux + GPU recommended)
 - `config/config.yaml.ollama-docker.example` with `base_url: http://ollama:11434/v1`
 - `--ollama-docker` flag for `setup.sh`
-- `compose.search.yml` override that adds SearXNG for Web search
-- `searxng/settings.yml.example` with `formats: [html, json]` and rate limiter disabled for agent use
-- `config/mcp.yaml.example` with the `searxng` MCP entry
-- `--with-search` flag for `setup.sh` (auto-generates a 64-char `SEARXNG_SECRET_KEY`)
+- SearXNG service bundled directly into `docker-compose.yml` (no override needed,
+  on by default)
+- `searxng/settings.yml.example` with `formats: [html, json]` and rate limiter disabled
+  for agent use
+- Hermes' built-in `web_search` tool wired to SearXNG via `web.search_backend: "searxng"`
+  in `~/.hermes/config.yaml` and `SEARXNG_URL=http://searxng:8080` in `~/.hermes/.env`
+  (no MCP required, no Node.js required inside the agent container)
+- `scripts/setup.sh` unconditionally provisions: `SEARXNG_SECRET_KEY` (64 hex chars)
+  in repo `.env`, `SEARXNG_URL` in `~/.hermes/.env`, and the `web:` block in
+  `~/.hermes/config.yaml`
 - `docs/SEARCH.md` and `docs/SEARCH.en.md`
 - `host.docker.internal:11434` connectivity by default
 
@@ -40,5 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/SECURITY.md` / `docs/SECURITY.en.md`
   - `docs/FAQ.md` / `docs/FAQ.en.md`
 - GitHub issue and PR templates under `.github/`
+
+### Notes
+
+- **`SEARXNG_URL` must live in `~/.hermes/.env`**, not in `docker-compose.yml`'s
+  `environment:` block. Hermes Agent reads SearXNG configuration via dotenv from
+  `~/.hermes/.env` and silently ignores the process env. Symptom of a misconfigured
+  setup: `Could not reach SearXNG at http://localhost:8888` (the built-in default).
+  `scripts/setup.sh` writes the correct value into `~/.hermes/.env` for you.
 
 [Unreleased]: https://github.com/zephel01/hermes-docker-ollama-template/commits/main

@@ -18,7 +18,7 @@ flowchart LR
         WebUI[hermes-webui<br/>Port 8787]
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
-        SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
+        SearXNG[SearXNG<br/>Port 8080]
     end
 
     subgraph Host[ホストOS]
@@ -33,7 +33,7 @@ flowchart LR
     WebUI -->|HTTP gateway| Agent
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
-    Agent -. MCP .-> SearXNG
+    Agent -. web_search .-> SearXNG
 
     WebUI --- HermesVol
     Agent --- HermesVol
@@ -41,7 +41,7 @@ flowchart LR
     WebUI --- Workspace
 ```
 
-> SearXNG は `compose.search.yml` 有効時にのみ起動するオプションコンポーネントです。詳細は [SEARCH.md](SEARCH.md) を参照してください。
+> SearXNG は標準で起動します。Hermes ネイティブの `web_search` ツールがこれを使ってメタ検索を行います。詳細は [SEARCH.md](SEARCH.md) を参照してください。
 
 ---
 
@@ -75,12 +75,13 @@ flowchart LR
 - Linux では systemd の `Environment="OLLAMA_HOST=0.0.0.0:11434"`、macOS では `launchctl setenv OLLAMA_HOST "0.0.0.0:11434"` または `OLLAMA_HOST=0.0.0.0:11434 ollama serve` で設定。
 - OpenAI 互換 API (`/v1/models`, `/v1/chat/completions`) を提供。
 
-### SearXNG (オプション、`--with-search` で有効)
+### SearXNG（標準で有効）
 
 - Google / Bing / DuckDuckGo / Brave / Wikipedia 等を裏で叩くメタ検索エンジン。
-- `compose.search.yml` 有効時のみ起動し、コンテナ間では `http://searxng:8080` で到達できる。
+- ベース `docker-compose.yml` に組み込み済み。コンテナ間では `http://searxng:8080` で到達できる。
 - `searxng/settings.yml` で `formats: [html, json]` を有効化済み（エージェントが `/search?format=json` を叩けるように）。
-- `SEARXNG_SECRET_KEY` は `setup.sh --with-search` が `.env` に 64文字ランダムを書き込む。
+- `SEARXNG_SECRET_KEY` は `setup.sh` が `.env` に 64 文字ランダムを書き込む。
+- Hermes Agent との接続は `~/.hermes/.env` の `SEARXNG_URL` と `~/.hermes/config.yaml` の `web.search_backend: "searxng"` で確立する（`setup.sh` が両方書く）。
 
 > ページ本文の取得（extract / crawl）は SearXNG では行えません。必要であれば Hermes 側の `web.extract_backend` 設定で Firecrawl / Tavily / Exa などのプロバイダを併用してください。
 

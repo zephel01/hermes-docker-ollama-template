@@ -38,3 +38,15 @@ approvals:
 
 logging:
   level: INFO
+
+# ---------------------------------------------------------------------------
+# Web search — routes Hermes' built-in web_search tool through the SearXNG
+# container started by docker-compose.yml. Also requires SEARXNG_URL=
+# http://searxng:8080 in ~/.hermes/.env (NOT in docker-compose.yml's
+# environment block — Hermes reads it via dotenv). `scripts/setup.sh`
+# configures both for you.
+# ---------------------------------------------------------------------------
+web:
+  search_backend: "searxng"
+  # extract_backend: "firecrawl"   # add if you also want web_extract
+

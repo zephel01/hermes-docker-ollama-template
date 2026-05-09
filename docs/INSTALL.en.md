@@ -213,28 +213,16 @@ For NVIDIA GPU support, uncomment the `deploy.resources.reservations.devices` bl
 > [!WARNING]
 > Using `--ollama-docker` on macOS falls back to CPU inference (Docker Desktop cannot pass Apple Silicon GPU into containers). Stick with host Ollama on Mac.
 
-### Enable Web search (SearXNG)
+### About web search (SearXNG)
 
-```bash
-./scripts/setup.sh --with-search
-docker compose -f docker-compose.yml -f compose.search.yml up -d --build
-```
+SearXNG is part of the base stack — `./scripts/setup.sh` followed by `docker compose up -d --build` brings it up by default. No extra flag.
 
-`setup.sh --with-search` does:
+`setup.sh` automatically:
 
 - Creates `searxng/settings.yml` (with `formats: [html, json]` enabled)
 - Appends a 64-char `SEARXNG_SECRET_KEY` to `.env`
-- Copies the SearXNG MCP entry to `~/.hermes/mcp.yaml`
-
-Combine with `--ollama-docker`:
-
-```bash
-docker compose \
-  -f docker-compose.yml \
-  -f compose.ollama.yml \
-  -f compose.search.yml \
-  up -d --build
-```
+- Appends `SEARXNG_URL=http://searxng:8080` to `~/.hermes/.env`
+- Appends `web.search_backend: "searxng"` to `~/.hermes/config.yaml`
 
 See [SEARCH.en.md](SEARCH.en.md) for the full guide.
 

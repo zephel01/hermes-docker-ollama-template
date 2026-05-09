@@ -18,7 +18,7 @@ flowchart LR
         WebUI[hermes-webui<br/>Port 8787]
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
-        SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
+        SearXNG[SearXNG<br/>Port 8080]
     end
 
     subgraph Host[Host OS]
@@ -33,7 +33,7 @@ flowchart LR
     WebUI -->|HTTP gateway| Agent
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
-    Agent -. MCP .-> SearXNG
+    Agent -. web_search .-> SearXNG
 
     WebUI --- HermesVol
     Agent --- HermesVol
@@ -41,7 +41,7 @@ flowchart LR
     WebUI --- Workspace
 ```
 
-> SearXNG is optional, started only when `compose.search.yml` is included. See [SEARCH.en.md](SEARCH.en.md).
+> SearXNG starts by default. Hermes' built-in `web_search` tool routes through it for meta-search. See [SEARCH.en.md](SEARCH.en.md).
 
 ---
 
@@ -75,12 +75,13 @@ flowchart LR
 - On Linux, set via systemd `Environment="OLLAMA_HOST=0.0.0.0:11434"`; on macOS, via `launchctl setenv OLLAMA_HOST "0.0.0.0:11434"` or `OLLAMA_HOST=0.0.0.0:11434 ollama serve`.
 - Exposes OpenAI-compatible endpoints (`/v1/models`, `/v1/chat/completions`).
 
-### SearXNG (optional, `--with-search`)
+### SearXNG (on by default)
 
 - Meta-search engine that proxies to Google / Bing / DuckDuckGo / Brave / Wikipedia / etc.
-- Started only with `compose.search.yml`; reachable from other containers at `http://searxng:8080`.
+- Bundled into the base `docker-compose.yml`; reachable from other containers at `http://searxng:8080`.
 - `formats: [html, json]` is enabled in `searxng/settings.yml` so the agent can hit `/search?format=json`.
-- `SEARXNG_SECRET_KEY` is auto-written into `.env` (64 random hex chars) by `setup.sh --with-search`.
+- `SEARXNG_SECRET_KEY` is auto-written into `.env` (64 random hex chars) by `setup.sh`.
+- Hermes Agent connects via `SEARXNG_URL` in `~/.hermes/.env` and `web.search_backend: "searxng"` in `~/.hermes/config.yaml` (both written by `setup.sh`).
 
 > Page extraction (extract / crawl) is not handled by SearXNG. If you need it, pair Hermes with an extract provider (Firecrawl / Tavily / Exa) via `web.extract_backend`.
 
