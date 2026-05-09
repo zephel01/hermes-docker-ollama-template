@@ -16,6 +16,7 @@
 - [`hermes-hudui` が起動しない](#hermes-hudui-が起動しない)
 - [LLM の応答が極端に遅い](#llm-の応答が極端に遅い)
 - [WebUI からログインできない](#webui-からログインできない)
+- [SearXNG / Crawl4AI 関連](#searxng--crawl4ai-関連)
 
 ---
 
@@ -205,3 +206,17 @@ ollama pull qwen2.5:3b
 ```bash
 ./scripts/reset-webui.sh
 ```
+
+---
+
+## SearXNG / Crawl4AI 関連
+
+検索基盤を有効にしている場合（`compose.search.yml`）の典型的な詰まりは [SEARCH.md](SEARCH.md) のトラブルシュートに集約しています。よくあるもの:
+
+- `searxng` コンテナが再起動を繰り返す → `SEARXNG_SECRET_KEY` 未設定
+- `format=json` が 404 / 403 → `searxng/settings.yml` の `formats: [html, json]` 不足
+- Crawl4AI の初回が極端に遅い → Chromium ダウンロード中（正常動作）
+- Hermes から SearXNG に到達できない → `compose.search.yml` を起動コマンドに渡し忘れ
+- MCP サーバが `command not found` → `mcp-searxng` (npm) / `mcp-crawl4ai` (uvx) の実行系がコンテナ内に必要
+
+詳しい確認手順は [SEARCH.md](SEARCH.md) を参照してください。

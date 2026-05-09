@@ -18,6 +18,8 @@ flowchart LR
         WebUI[hermes-webui<br/>Port 8787]
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
+        SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
+        Crawl4AI[Crawl4AI<br/>Port 11235<br/>--with-search]
     end
 
     subgraph Host[Host OS]
@@ -32,12 +34,16 @@ flowchart LR
     WebUI -->|HTTP gateway| Agent
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
+    Agent -. MCP .-> SearXNG
+    Agent -. MCP .-> Crawl4AI
 
     WebUI --- HermesVol
     Agent --- HermesVol
     HUD --- HermesVol
     WebUI --- Workspace
 ```
+
+> SearXNG / Crawl4AI are optional, started only when `compose.search.yml` is included. See [SEARCH.en.md](SEARCH.en.md).
 
 ---
 
@@ -70,6 +76,20 @@ flowchart LR
 - Bound to `0.0.0.0:11434` (not `127.0.0.1`) so containers can reach it via `host.docker.internal:11434/v1`.
 - On Linux, set via systemd `Environment="OLLAMA_HOST=0.0.0.0:11434"`; on macOS, via `launchctl setenv OLLAMA_HOST "0.0.0.0:11434"` or `OLLAMA_HOST=0.0.0.0:11434 ollama serve`.
 - Exposes OpenAI-compatible endpoints (`/v1/models`, `/v1/chat/completions`).
+
+### SearXNG (optional, `--with-search`)
+
+- Meta-search engine that proxies to Google / Bing / DuckDuckGo / Brave / Wikipedia / etc.
+- Started only with `compose.search.yml`; reachable from other containers at `http://searxng:8080`.
+- `formats: [html, json]` is enabled in `searxng/settings.yml` so the agent can hit `/search?format=json`.
+- `SEARXNG_SECRET_KEY` is auto-written into `.env` (64 random hex chars) by `setup.sh --with-search`.
+
+### Crawl4AI (optional, `--with-search`)
+
+- Playwright (Chromium) based LLM-friendly page fetcher.
+- Handles dynamic / JS-rendered pages; returns clean Markdown that's easy for LLMs to consume.
+- Reachable from other containers at `http://crawl4ai:11235`.
+- First boot downloads Chromium binaries (~1 GB), so initial start can take 1–3 minutes.
 
 ---
 

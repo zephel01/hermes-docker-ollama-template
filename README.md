@@ -37,6 +37,8 @@ Hermes WebUI を Docker と Ollama で動かすときに必ずハマる落とし
 | `hermes-hudui` 公式 Dockerfile が無い | カスタム Dockerfile 同梱 |
 | MCP 設定に絶対パスが残ってDocker内で壊れる | デフォルトはMCP無効 |
 | LAN/インターネットへの誤公開 | `127.0.0.1` バインド + Tailscale前提 |
+| `UID` / `GID` がbash予約名と衝突 / macOSで501:20が埋まらない | `HOST_UID`/`HOST_GID` に rename + `setup.sh` で自動置換 |
+| Hermes 単体では Web 検索ができない | `compose.search.yml` で SearXNG + Crawl4AI をオプション提供 |
 
 ---
 
@@ -49,12 +51,14 @@ flowchart TB
         TS[Tailscale Serve]
     end
     subgraph Docker[Docker Compose ネットワーク]
-        WebUI[hermes-webui<br/>:8787]
-        Agent[hermes-agent<br/>:8642]
-        HUD[hermes-hudui<br/>:3001]
+        WebUI[hermes-webui:8787]
+        Agent[hermes-agent:8642]
+        HUD[hermes-hudui:3001]
+        SearXNG[SearXNG:8080<br/>--with-search]
+        Crawl4AI[Crawl4AI:11235<br/>--with-search]
     end
     subgraph Host[ホストOS]
-        Ollama[Ollama<br/>:11434]
+        Ollama[Ollama:11434]
         Hermes[~/.hermes/共有ボリューム]
     end
 
@@ -63,10 +67,14 @@ flowchart TB
     TS --> WebUI
     WebUI --> Agent
     Agent -->|host.docker.internal:11434/v1| Ollama
+    Agent -. MCP .-> SearXNG
+    Agent -. MCP .-> Crawl4AI
     HUD --> Hermes
     WebUI --> Hermes
     Agent --> Hermes
 ```
+
+> SearXNG / Crawl4AI は `--with-search` 指定時のみ起動するオプションコンポーネントです。
 
 ---
 
@@ -91,15 +99,21 @@ curl http://127.0.0.1:11434/api/tags
 
 ```mermaid
 flowchart TD
-    A[あなたの環境は？] --> B[macOS]
+    A[環境は？] --> B[macOS]
     A --> C[Linux + NVIDIA GPU]
     A --> D[Linux CPU only / AMD]
-    B --> E[ホスト Ollama 一択<br/>下記クイックスタートを使用]
-    C --> F[コンテナで完結させたい？]
+    B --> E[ホスト Ollama]
+    C --> F{コンテナで完結させたい？}
     D --> E
-    F -->|Yes| G[Ollama も Docker 化<br/>--ollama-docker モード]
+    F -->|Yes| G[--ollama-docker]
     F -->|No| E
+    E --> H{Web 検索も使いたい？}
+    G --> H
+    H -->|Yes| I[--with-search を追加]
+    H -->|No| J[ベース構成で起動]
 ```
+
+`--ollama-docker` と `--with-search` はそれぞれ独立して on/off できます。組み合わせ自由です。
 
 ## クイックスタート
 
@@ -126,6 +140,15 @@ docker exec -it ollama ollama pull gemma4:e4b
 ```
 
 NVIDIA GPU を使う場合は `compose.ollama.yml` の `deploy.resources` ブロックをアンコメントしてください。
+
+**モード 3: Web検索を有効化（SearXNG + Crawl4AI）**
+
+```bash
+./scripts/setup.sh --with-search
+docker compose -f docker-compose.yml -f compose.search.yml up -d --build
+```
+
+詳しくは [docs/SEARCH.md](docs/SEARCH.md) を参照。`--ollama-docker` と組み合わせも可能です。
 
 アクセス先:
 
@@ -287,11 +310,15 @@ hermes-docker-ollama-template/
 ├── CHANGELOG.md
 ├── docker-compose.yml
 ├── compose.ollama.yml         ← Ollama も Docker化する場合の override
+├── compose.search.yml         ← SearXNG + Crawl4AI を足す override
 ├── .env.example
 ├── .gitignore
 ├── config/
 │   ├── config.yaml.example
-│   └── config.yaml.ollama-docker.example
+│   ├── config.yaml.ollama-docker.example
+│   └── mcp.yaml.example       ← SearXNG/Crawl4AI 用 MCP 設定例
+├── searxng/
+│   └── settings.yml.example
 ├── hermes-hudui/
 │   └── Dockerfile
 ├── scripts/
@@ -304,6 +331,7 @@ hermes-docker-ollama-template/
 │   ├── ARCHITECTURE.md        / ARCHITECTURE.en.md
 │   ├── TROUBLESHOOTING.md     / TROUBLESHOOTING.en.md
 │   ├── SECURITY.md            / SECURITY.en.md
+│   ├── SEARCH.md              / SEARCH.en.md
 │   └── FAQ.md                 / FAQ.en.md
 └── .github/
     ├── ISSUE_TEMPLATE/
@@ -341,6 +369,11 @@ hermes-docker-ollama-template/
     <td>セキュリティ</td>
     <td><a href="docs/SECURITY.md">SECURITY.md</a></td>
     <td><a href="docs/SECURITY.en.md">SECURITY.en.md</a></td>
+  </tr>
+  <tr>
+    <td>Web 検索（SearXNG + Crawl4AI）</td>
+    <td><a href="docs/SEARCH.md">SEARCH.md</a></td>
+    <td><a href="docs/SEARCH.en.md">SEARCH.en.md</a></td>
   </tr>
   <tr>
     <td>FAQ</td>

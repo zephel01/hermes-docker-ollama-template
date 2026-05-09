@@ -18,6 +18,8 @@ flowchart LR
         WebUI[hermes-webui<br/>Port 8787]
         Agent[hermes-agent<br/>Port 8642]
         HUD[hermes-hudui<br/>Port 3001]
+        SearXNG[SearXNG<br/>Port 8080<br/>--with-search]
+        Crawl4AI[Crawl4AI<br/>Port 11235<br/>--with-search]
     end
 
     subgraph Host[ホストOS]
@@ -32,12 +34,16 @@ flowchart LR
     WebUI -->|HTTP gateway| Agent
     WebUI -. host.docker.internal:11434/v1 .-> Ollama
     Agent -. host.docker.internal:11434/v1 .-> Ollama
+    Agent -. MCP .-> SearXNG
+    Agent -. MCP .-> Crawl4AI
 
     WebUI --- HermesVol
     Agent --- HermesVol
     HUD --- HermesVol
     WebUI --- Workspace
 ```
+
+> SearXNG / Crawl4AI は `compose.search.yml` 有効時にのみ起動するオプションコンポーネントです。詳細は [SEARCH.md](SEARCH.md) を参照してください。
 
 ---
 
@@ -70,6 +76,20 @@ flowchart LR
 - `127.0.0.1:11434` ではなく `0.0.0.0:11434` で listen させ、Docker から `host.docker.internal:11434/v1` で到達できるようにする。
 - Linux では systemd の `Environment="OLLAMA_HOST=0.0.0.0:11434"`、macOS では `launchctl setenv OLLAMA_HOST "0.0.0.0:11434"` または `OLLAMA_HOST=0.0.0.0:11434 ollama serve` で設定。
 - OpenAI 互換 API (`/v1/models`, `/v1/chat/completions`) を提供。
+
+### SearXNG (オプション、`--with-search` で有効)
+
+- Google / Bing / DuckDuckGo / Brave / Wikipedia 等を裏で叩くメタ検索エンジン。
+- `compose.search.yml` 有効時のみ起動し、コンテナ間では `http://searxng:8080` で到達できる。
+- `searxng/settings.yml` で `formats: [html, json]` を有効化済み（エージェントが `/search?format=json` を叩けるように）。
+- `SEARXNG_SECRET_KEY` は `setup.sh --with-search` が `.env` に 64文字ランダムを書き込む。
+
+### Crawl4AI (オプション、`--with-search` で有効)
+
+- Playwright (Chromium) ベースの LLM フレンドリな Web ページ取得サーバ。
+- 動的レンダリング対応。整形済み Markdown を返すので LLM への投入が楽。
+- コンテナ間では `http://crawl4ai:11235` で到達。
+- 初回起動時に Chromium バイナリ（約 1GB）をダウンロードするため、起動完了まで 1〜3 分かかることがある。
 
 ---
 

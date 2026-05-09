@@ -16,6 +16,8 @@
 - [Q. 既存の `~/.hermes` を残したい](#q-既存の-hermes-を残したい)
 - [Q. アップデートはどうやる？](#q-アップデートはどうやる)
 - [Q. プロンプトログはどこにある？](#q-プロンプトログはどこにある)
+- [Q. Hermes に Web 検索をさせるには？](#q-hermes-に-web-検索をさせるには)
+- [Q. SearXNG / Crawl4AI を使うとデータは外に漏れる？](#q-searxng--crawl4ai-を使うとデータは外に漏れる)
 
 ---
 
@@ -176,3 +178,36 @@ find ~/.hermes -type f -mtime -1
 ```
 
 で最近更新されたファイルを確認してください。
+
+---
+
+## Q. Hermes に Web 検索をさせるには？
+
+**A.** SearXNG + Crawl4AI のオプション構成を有効にします。
+
+```bash
+./scripts/setup.sh --with-search
+docker compose -f docker-compose.yml -f compose.search.yml up -d --build
+```
+
+SearXNG が検索結果（メタ検索：Google / Bing / DuckDuckGo 等を集約）を、Crawl4AI が個別ページの取得を担当します。詳細は [SEARCH.md](SEARCH.md) を参照。
+
+`--ollama-docker` と組み合わせも可能です:
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f compose.ollama.yml \
+  -f compose.search.yml \
+  up -d --build
+```
+
+---
+
+## Q. SearXNG / Crawl4AI を使うとデータは外に漏れる？
+
+**A.** 一部だけ漏れます。正直に書きます。
+
+- **検索クエリ**: SearXNG はメタ検索なので、最終的に Google / Bing 等にクエリが飛びます。ただし IP / Cookie / User-Agent はあなた個人ではなく SearXNG コンテナのものになるため、追跡されにくくなります。
+- **取得したページ内容**: Crawl4AI が読み込んだページの本文はコンテナ内で処理され、外部送信されません。
+- **完全プライベート化したい場合**: `searxng/settings.yml` の `engines:` から Google / Bing を外し、DuckDuckGo / Brave / Wikipedia だけにする手があります。それでも各エンジンへのクエリは出ますが、より追跡耐性のある選択肢です。

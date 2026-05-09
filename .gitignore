@@ -5,9 +5,15 @@
 .hermes/
 workspace/
 
+# SearXNG instance config (kept private; example committed)
+searxng/settings.yml
+searxng/limiter.toml
+
 *.bak
 *.bak.*
 __pycache__/
 .pytest_cache/
 
 .DS_Store
+
+docs/article

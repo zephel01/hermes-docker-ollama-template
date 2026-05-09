@@ -16,6 +16,7 @@ Always start with [`./scripts/check.sh`](../scripts/check.sh) to isolate which l
 - [`hermes-hudui` won't start](#hermes-hudui-wont-start)
 - [LLM responses are extremely slow](#llm-responses-are-extremely-slow)
 - [Cannot log into WebUI](#cannot-log-into-webui)
+- [SearXNG / Crawl4AI issues](#searxng--crawl4ai-issues)
 
 ---
 
@@ -205,3 +206,17 @@ If that still fails, reset WebUI state:
 ```bash
 ./scripts/reset-webui.sh
 ```
+
+---
+
+## SearXNG / Crawl4AI issues
+
+Search-stack-specific issues live in [SEARCH.en.md](SEARCH.en.md). Common ones:
+
+- `searxng` container keeps restarting → `SEARXNG_SECRET_KEY` is not set
+- `format=json` returns 404 / 403 → `formats: [html, json]` missing from `searxng/settings.yml`
+- Crawl4AI's first crawl is very slow → Chromium download (expected on first boot)
+- Hermes can't reach SearXNG → forgot to pass `compose.search.yml` on `up`
+- MCP server `command not found` → `mcp-searxng` (npm) / `mcp-crawl4ai` (uvx) runtimes missing inside the container
+
+See [SEARCH.en.md](SEARCH.en.md) for the full diagnostic flow.

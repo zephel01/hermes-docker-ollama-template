@@ -1,0 +1,65 @@
+# SearXNG settings for Hermes integration.
+# This file is mounted to /etc/searxng/settings.yml inside the container.
+#
+# Key points for Hermes / agent use:
+#   - search.formats includes "json"  (so the agent can call /search?format=json)
+#   - server.limiter is false         (the agent makes many requests; rate limiting breaks tools)
+#   - server.image_proxy is false     (we don't need image proxying)
+#
+# Reference: https://docs.searxng.org/admin/settings/index.html
+
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "Hermes SearXNG"
+  contact_url: false
+  enable_metrics: false
+
+server:
+  # secret_key is set via environment variable SEARXNG_SECRET_KEY at container start.
+  # Do NOT hardcode it here.
+  base_url: false
+  port: 8080
+  bind_address: "0.0.0.0"
+  limiter: false
+  image_proxy: false
+  http_protocol_version: "1.0"
+
+ui:
+  static_use_hash: true
+  default_locale: ""
+  query_in_title: false
+  infinite_scroll: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: ""
+  formats:
+    - html
+    - json
+
+# Trim default engines down to a fast, agent-friendly subset.
+# Remove or add engines as you like — see SearXNG docs for the full list.
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: google
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: brave
+    disabled: false
+  - name: wikipedia
+    disabled: false
+  - name: github
+    disabled: false
+  - name: stackoverflow
+    disabled: false
+
+outgoing:
+  request_timeout: 5.0
+  max_request_timeout: 10.0
+  pool_connections: 100
+  pool_maxsize: 20
